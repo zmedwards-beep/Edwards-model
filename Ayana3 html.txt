@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+    <meta charset="UTF-8">
+    <title>The Edwards Model: 3D to 5D Transition</title>
+    <script src="https://cdn.jsdelivr.net"></script>
+    <style>
+        :root { --accent: #4ecca3; --bg: #1a1a2e; --panel: #16213e; }
+        body { font-family: 'Helvetica Neue', Arial; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1100px; }
+        .panel { background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid #0f3460; }
+        .slider-box { margin-bottom: 15px; }
+        input[type=range] { width: 100%; accent-color: var(--accent); }
+        #node-display { font-size: 2rem; color: var(--accent); font-weight: bold; margin: 10px 0; }
+        .credit-footer { margin-top: 30px; text-align: center; font-size: 0.8rem; opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+<h1>THE EDWARDS MODEL VISUALISER</h1>
+<p>Mapping the transition from 3D Lövheim space to the 5D Edwards Hypercube</p>
+
+<div class="grid">
+    <!-- Controls Section -->
+    <div class="panel">
+        <h3>1. The Lövheim Core (3D)</h3>
+        <div class="slider-box"><label>Serotonin (S)</label><input type="range" id="S" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        <div class="slider-box"><label>Dopamine (D)</label><input type="range" id="D" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        <div class="slider-box"><label>Noradrenaline (N)</label><input type="range" id="N" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        
+        <hr style="border: 0.5px solid #0f3460; margin: 20px 0;">
+        
+        <h3>2. The Edwards Extension (+2D)</h3>
+        <div class="slider-box"><label>Oxytocin (O) - <i>Stella Axis</i></label><input type="range" id="O" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        <div class="slider-box"><label>Endorphins (E) - <i>Oska Axis</i></label><input type="range" id="E" min="0" max="1" step="1" value="0" oninput="update()"></div>
+    </div>
+
+    <!-- Visualisation Section -->
+    <div class="panel">
+        <canvas id="edwardsRadar"></canvas>
+        <div style="text-align: center; margin-top: 20px;">
+            <div id="node-id" style="font-size: 0.9rem; opacity: 0.6;">Current Vector: [0,0,0,0,0]</div>
+            <div id="node-display">EMPTY VOID</div>
+            <p id="node-desc">The baseline state of neurochemical depletion.</p>
+        </div>
+    </div>
+</div>
+
+<footer class="credit-footer">
+    Developed by Zachary Morgan Edwards, Stella Morgan Edwards, & Oska Stanley Rupert Edwards<br>
+    Woolgoolga, Australia © 2025
+</footer>
+
+<script>
+const edwardsDictionary = {
+    "0,0,0,0,0": { name: "Empty Void", desc: "Baseline depletion." },
+    "1,1,1,0,0": { name: "Anger/Rage (Lövheim)", desc: "The classic 3D high-energy aggression." },
+    "1,1,1,1,0": { name: "Heroic Radiance", desc: "Aggression redirected into social protection (The O-Filter)." },
+    "1,1,1,1,1": { name: "The Edwards Peak", desc: "Total neurochemical saturation and unity." },
+    "0,0,1,1,0": { name: "Grief", desc: "Arousal and Social Bond without Reward or Stability." },
+    "1,0,1,0,1": { name: "Indomitable Resilience", desc: "Stability and focus buffered by Endorphins." }
+    // Full 32-node dictionary would be populated here
+};
+
+let ctx = document.getElementById('edwardsRadar').getContext('2d');
+let radar = new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: ['Serotonin', 'Dopamine', 'Noradrenaline', 'Oxytocin', 'Endorphins'],
+        datasets: [{
+            data: [0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(78, 204, 163, 0.2)',
+            borderColor: '#4ecca3',
+            borderWidth: 3
+        }]
+    },
+    options: {
+        scales: { r: { min: 0, max: 1, ticks: { display: false }, grid: { color: '#0f3460' } } },
+        plugins: { legend: { display: false } }
+    }
+});
+
+function update() {
+    const vals = [
+        document.getElementById('S').value,
+        document.getElementById('D').value,
+        document.getElementById('N').value,
+        document.getElementById('O').value,
+        document.getElementById('E').value
+    ];
+    
+    radar.data.datasets[0].data = vals;
+    radar.update();
+
+    const key = vals.join(',');
+    const node = edwardsDictionary[key] || { name: "Hybrid State", desc: "A complex mix of neurochemical influences." };
+    
+    document.getElementById('node-id').innerText = `Current Vector: [${key}]`;
+    document.getElementById('node-display').innerText = node.name;
+    document.getElementById('node-desc').innerText = node.desc;
+}
+</script>
+</body>
+</html>

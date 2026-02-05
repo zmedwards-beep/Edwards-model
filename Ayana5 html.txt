@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+    <meta charset="UTF-8">
+    <title>The Edwards Model: Compare & Contrast v2.0</title>
+    <script src="https://cdn.jsdelivr.net"></script>
+    <style>
+        :root { --accent: #4ecca3; --ghost: rgba(255, 255, 255, 0.4); --bg: #1a1a2e; --panel: #16213e; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; max-width: 1100px; width: 100%; }
+        .panel { background: var(--panel); padding: 25px; border-radius: 15px; border: 1px solid #0f3460; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .slider-box { margin-bottom: 18px; }
+        label { font-size: 0.9rem; font-weight: bold; color: #a2a8d3; }
+        input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+        #node-display { font-size: 2.2rem; color: var(--accent); font-weight: bold; margin: 10px 0; text-shadow: 0 0 10px rgba(78, 204, 163, 0.3); }
+        .btn-compare { background: var(--accent); color: #1a1a2e; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-compare:hover { background: #45b791; transform: translateY(-2px); }
+        .btn-reset { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; margin-top: 10px; padding: 8px; border-radius: 8px; cursor: pointer; width: 100%; }
+        .comparison-data { margin-top: 20px; font-size: 0.85rem; line-height: 1.6; border-top: 1px solid #0f3460; padding-top: 15px; }
+    </style>
+</head>
+<body>
+
+<h1>THE EDWARDS MODEL: COMPARE & CONTRAST</h1>
+<p style="opacity: 0.8; margin-bottom: 30px;">Identify the 'Chemical Delta' between two emotional states</p>
+
+<div class="grid">
+    <!-- Controls -->
+    <div class="panel">
+        <h3 style="color: var(--accent);">Adjust Matrix Values</h3>
+        <div class="slider-box"><label>Serotonin (S)</label><input type="range" id="S" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        <div class="slider-box"><label>Dopamine (D)</label><input type="range" id="D" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        <div class="slider-box"><label>Noradrenaline (N)</label><input type="range" id="N" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        <div class="slider-box"><label>Oxytocin (O) - <i>Stella Axis</i></label><input type="range" id="O" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        <div class="slider-box"><label>Endorphins (E) - <i>Oska Axis</i></label><input type="range" id="E" min="0" max="1" step="1" value="0" oninput="update()"></div>
+        
+        <button class="btn-compare" onclick="saveGhost()">PIN CURRENT AS TARGET</button>
+        <button class="btn-reset" onclick="resetGhost()">CLEAR COMPARISON</button>
+    </div>
+
+    <!-- Chart & Readout -->
+    <div class="panel">
+        <canvas id="edwardsRadar"></canvas>
+        <div style="text-align: center; margin-top: 25px;">
+            <div id="node-display">EMPTY VOID</div>
+            <p id="node-desc" style="min-height: 50px; color: #a2a8d3;">The baseline state of neurochemical depletion.</p>
+            
+            <div id="delta-report" class="comparison-data" style="display: none;">
+                <strong>REQUIRED DELTA:</strong><br>
+                <span id="delta-text">Compare two states to see required chemical shifts.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p style="margin-top: 40px; font-size: 0.75rem; color: #666; text-align: center;">
+    <strong>THE EDWARDS MODEL</strong><br>
+    Zachary Morgan Edwards • Stella Morgan Edwards • Oska Stanley Rupert Edwards<br>
+    Woolgoolga, Australia
+</p>
+
+<script>
+const edwardsDictionary = {
+    "0,0,0,0,0": { name: "Empty Void", desc: "Baseline depletion; clinical apathy." },
+    "1,0,0,0,0": { name: "Stoic Detachment", desc: "Internal stability without external drive or bond." },
+    "0,0,1,0,0": { name: "Paranoid Terror", desc: "High arousal (N) with zero social filter (O)." },
+    "0,0,1,1,0": { name: "Grief / Anguish", desc: "High arousal social longing; acute social pain." },
+    "1,0,1,1,1": { name: "Universal Sublime", desc: "Awe, connection, and equanimity under high arousal." },
+    "1,1,1,1,1": { name: "The Edwards Peak", desc: "Total neurochemical saturation; transcendental unity." },
+    "1,0,1,0,1": { name: "Indomitable Resilience", desc: "Stability and focus buffered by endorphins." },
+    "1,1,1,1,0": { name: "Heroic Radiance", desc: "Drive and arousal filtered through social bonding." },
+    "0,1,1,0,1": { name: "Predatory Flow", desc: "Reward-seeking arousal without empathy, buffered by endorphins." }
+};
+
+let ghostData = null;
+let ctx = document.getElementById('edwardsRadar').getContext('2d');
+
+let radar = new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: ['Serotonin', 'Dopamine', 'Noradrenaline', 'Oxytocin', 'Endorphins'],
+        datasets: [{
+            label: 'Current State',
+            data: [0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(78, 204, 163, 0.3)',
+            borderColor: '#4ecca3',
+            borderWidth: 3,
+            zIndex: 2
+        }, {
+            label: 'Pinned Target',
+            data: null,
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            hidden: true,
+            zIndex: 1
+        }]
+    },
+    options: {
+        scales: { r: { min: 0, max: 1, ticks: { display: false }, grid: { color: '#0f3460' }, angleLines: { color: '#0f3460' } } },
+        plugins: { legend: { display: false } }
+    }
+});
+
+function update() {
+    const s = document.getElementById('S').value;
+    const d = document.getElementById('D').value;
+    const n = document.getElementById('N').value;
+    const o = document.getElementById('O').value;
+    const e = document.getElementById('E').value;
+    const current = [s, d, n, o, e];
+    
+    radar.data.datasets[0].data = current;
+    radar.update();
+
+    const key = current.join(',');
+    const node = edwardsDictionary[key] || { name: "Hybrid State", desc: "A complex neurochemical transition." };
+    document.getElementById('node-display').innerText = node.name;
+    document.getElementById('node-desc').innerText = node.desc;
+
+    if (ghostData) {
+        calculateDelta(current, ghostData);
+    }
+}
+
+function saveGhost() {
+    ghostData = [...radar.data.datasets[0].data];
+    radar.data.datasets[1].data = ghostData;
+    radar.data.datasets[1].hidden = false;
+    radar.update();
+    document.getElementById('delta-report').style.display = 'block';
+    update();
+}
+
+function resetGhost() {
+    ghostData = null;
+    radar.data.datasets[1].hidden = true;
+    radar.update();
+    document.getElementById('delta-report').style.display = 'none';
+}
+
+function calculateDelta(current, target) {
+    const labels = ['Serotonin', 'Dopamine', 'Noradrenaline', 'Oxytocin', 'Endorphins'];
+    let shifts = [];
+    for (let i = 0; i < 5; i++) {
+        let diff = target[i] - current[i];
+        if (diff > 0) shifts.push(`+ ${labels[i]}`);
+        else if (diff < 0) shifts.push(`- ${labels[i]}`);
+    }
+    document.getElementById('delta-text').innerText = shifts.length ? shifts.join(' | ') : "States are identical.";
+}
+</script>
+</body>
+</html>

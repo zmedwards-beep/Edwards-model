@@ -1,0 +1,29 @@
+function exportCanvas() {
+    const canvas = document.getElementById('edwardsRadar');
+    const nodeName = document.getElementById('node-display').innerText;
+    
+    // Create a temporary link to download the image
+    const link = document.createElement('a');
+    link.download = `Edwards_Model_${nodeName.replace(/\s+/g, '_')}.png`;
+    
+    // Ensure the background isn't transparent in the export
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tCtx = tempCanvas.getContext('2d');
+    
+    // Fill background
+    tCtx.fillStyle = '#16213e'; 
+    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // Draw the chart on top
+    tCtx.drawImage(canvas, 0, 0);
+    
+    // Add Branding to Export
+    tCtx.fillStyle = "#4ecca3";
+    tCtx.font = "12px Arial";
+    tCtx.fillText("The Edwards Model: Z.M, S.M, & O.S.R Edwards", 20, tempCanvas.height - 20);
+    
+    link.href = tempCanvas.toDataURL("image/png");
+    link.click();
+}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Edwards Model Visualiser</title>
+    <script src="https://cdn.jsdelivr.net"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e9e9e9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { display: flex; background: #16213e; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #0f3460; }
+        .controls { display: flex; flex-direction: column; margin-right: 40px; min-width: 250px; }
+        .slider-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #4ecca3; }
+        input[type=range] { width: 100%; cursor: pointer; }
+        .output-box { text-align: center; margin-top: 20px; padding: 20px; background: #0f3460; border-radius: 10px; width: 100%; max-width: 600px; }
+        #emotion-name { font-size: 24px; color: #4ecca3; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .credit { margin-top: 30px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <h1>THE EDWARDS MODEL</h1>
+    <p>5D Neurochemical Emotional Mapping</p>
+
+    <div class="container">
+        <div class="controls">
+            <div class="slider-group">
+                <label>Serotonin (S)</label>
+                <input type="range" id="S" min="0" max="1" step="1" value="0" oninput="updateModel()">
+            </div>
+            <div class="slider-group">
+                <label>Dopamine (D)</label>
+                <input type="range" id="D" min="0" max="1" step="1" value="0" oninput="updateModel()">
+            </div>
+            <div class="slider-group">
+                <label>Noradrenaline (N)</label>
+                <input type="range" id="N" min="0" max="1" step="1" value="0" oninput="updateModel()">
+            </div>
+            <div class="slider-group">
+                <label>Oxytocin (O)</label>
+                <input type="range" id="O" min="0" max="1" step="1" value="0" oninput="updateModel()">
+            </div>
+            <div class="slider-group">
+                <label>Endorphins (E)</label>
+                <input type="range" id="E" min="0" max="1" step="1" value="0" oninput="updateModel()">
+            </div>
+        </div>
+
+        <canvas id="radarChart" width="400" height="400"></canvas>
+    </div>
+
+    <div class="output-box">
+        <div>Current Node Label:</div>
+        <div id="emotion-name">EMPTY VOID</div>
+        <div id="emotion-desc" style="font-style: italic; color: #999;">Total neurochemical depletion.</div>
+    </div>
+
+    <div class="credit">Developed by Zachary Morgan Edwards | Woolgoolga, Australia</div>
+
+<script>
+const nodes = {
+    "0,0,0,0,0": { name: "Empty Void", desc: "Total neurochemical depletion and apathy." },
+    "1,1,1,1,1": { name: "The Edwards Peak", desc: "Total neurochemical saturation; transcendental unity." },
+    "0,0,1,1,0": { name: "Grief / Anguish", desc: "High-arousal social loss and distress." },
+    "1,1,1,0,1": { name: "Flow State", desc: "Peak performance and internal focus; pain-buffering active." },
+    "1,0,1,1,1": { name: "Universal Sublime", desc: "Total peace and connection under high arousal." },
+    "0,0,1,0,0": { name: "Paranoid Terror", desc: "Pure high-alert fear in total isolation." },
+    "1,1,1,1,0": { name: "Heroic Radiance", desc: "Selfless peak performance; social drive." },
+    "1,0,0,1,1": { name: "Domestic Tranquility", desc: "Deep safety, bonding, and physical comfort." }
+    // More nodes can be added here from the 32-node dictionary
+};
+
+let ctx = document.getElementById('radarChart').getContext('2d');
+let radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: ['Serotonin', 'Dopamine', 'Noradrenaline', 'Oxytocin', 'Endorphins'],
+        datasets: [{
+            label: 'Neurochemical Levels',
+            data: [0, 0, 0, 0, 0],
+            backgroundColor: 'rgba(78, 204, 163, 0.2)',
+            borderColor: '#4ecca3',
+            pointBackgroundColor: '#4ecca3'
+        }]
+    },
+    options: {
+        scales: { r: { min: 0, max: 1, ticks: { display: false }, grid: { color: '#0f3460' }, angleLines: { color: '#0f3460' } } },
+        plugins: { legend: { display: false } }
+    }
+});
+
+function updateModel() {
+    const s = document.getElementById('S').value;
+    const d = document.getElementById('D').value;
+    const n = document.getElementById('N').value;
+    const o = document.getElementById('O').value;
+    const e = document.getElementById('E').value;
+    
+    radarChart.data.datasets[0].data = [s, d, n, o, e];
+    radarChart.update();
+
+    const key = `${s},${d},${n},${o},${e}`;
+    const node = nodes[key] || { name: "Hybrid State", desc: "A transitional emotional state between primary nodes." };
+    
+    document.getElementById('emotion-name').innerText = node.name;
+    document.getElementById('emotion-desc').innerText = node.desc;
+}
+</script>
+</body>
+</html>
